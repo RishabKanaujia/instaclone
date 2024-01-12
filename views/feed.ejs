@@ -78,16 +78,16 @@
 
 
 
-              <img class="w-full h-full object-cover" src="/images/uploads/<%= elem.user.profileImage %>" alt="">
+              <img class="w-full h-full object-cover" src="<%= elem.user.profileImage %>" alt="">
             </div>
             <h4 class="text-sm"><%= elem.user.username %></h4>
             <h6 class="text-xs opacity-30">1d</h6>
-            <div class="justify-end flex  w-full" href="/delete/post/<%= elem._id %>"><i class="fa-solid fa-trash"></i></a></div>
+            <div class="justify-end flex  w-full"><a href="/delete/post/<%= elem._id %>"><i class="fa-solid fa-trash"></i></a></div> 
 
             
           </div>
           <div class="w-full h-96 mt-4 bg-sky-100 overflow-hidden">
-            <img class="w-full h-full object-cover" src="/images/uploads/<%= elem.picture %>" alt="">
+            <img class="w-full h-full object-cover" src="<%= elem.picture %>" alt="">
           </div>
           <div class="options w-full px-4 flex justify-between items-center text-[1.4rem]">
             <div class="flex gap-3 mt-2">

@@ -7,6 +7,7 @@ const postModel = require("./post");
 const passport = require("passport");
 const localStategy = require("passport-local");
 const upload = require('./multer');
+const cloudinary = require('cloudinary')
 
 passport.use(new localStategy(userModel.authenticate()));
 
@@ -16,14 +17,13 @@ router.get('/', function (req, res) {
 });
 
 router.get('/login', function (req, res) {
-  res.render('login', { footer: false }); 
+  res.render('login', { footer: false });
 });
-
 router.get('/feed', isLoggedIn, async function (req, res) {
   const user = await userModel.findOne({ username: req.session.passport.user }).populate("posts");
   const posts = await postModel.find().populate("user");
   // console.log(posts,user);
-  res.render('feed', { footer: true, posts,user });
+  res.render('feed', { footer: true, posts, user });
 
 });
 
@@ -36,27 +36,32 @@ router.get('/search', isLoggedIn, function (req, res) {
   res.render('search', { footer: true });
 });
 
+router.get('/upload', isLoggedIn, function (req, res) {
+  res.render('upload', { footer: true, });
+});
+
+
 router.get('/delete/post/:id', isLoggedIn, async function (req, res) {
   const user = await userModel.findOne({ username: req.session.passport.user })
- 
-if(user.posts.includes(req.params.id)){
-  await postModel.deleteOne({_id:req.params.id});
-  const index = user.posts.indexOf(req.params.id)
-    user.posts.splice(index,1)
-  
-}
-await user.save();
+
+  if (user.posts.includes(req.params.id)) {
+    await postModel.deleteOne({ _id: req.params.id });
+    const index = user.posts.indexOf(req.params.id)
+    user.posts.splice(index, 1)
+
+  }
+  await user.save();
   res.redirect('/feed');
 });
 
 router.get('/like/post/:id', isLoggedIn, async function (req, res) {
   const user = await userModel.findOne({ username: req.session.passport.user });
-  const post = await postModel.findOne({_id:req.params.id});
- if(post.likes.indexOf(user._id) === -1){
-  post.likes.push(user._id);
- } else{
-  post.likes.splice(post.likes.indexOf(user._id),1);
- }
+  const post = await postModel.findOne({ _id: req.params.id });
+  if (post.likes.indexOf(user._id) === -1) {
+    post.likes.push(user._id);
+  } else {
+    post.likes.splice(post.likes.indexOf(user._id), 1);
+  }
   await post.save();
   res.redirect('/feed');
 });
@@ -66,14 +71,10 @@ router.get('/edit', isLoggedIn, async function (req, res) {
   res.render('edit', { footer: true, user });
 });
 
-router.get('/upload', isLoggedIn, function (req, res) {
-  res.render('upload', { footer: true, });
-});
-
 router.get('/username/:username', isLoggedIn, async function (req, res) {
-  const regex = new RegExp(`^${req.params.username}`,`i`) ; 
+  const regex = new RegExp(`^${req.params.username}`, `i`);
   const users = await userModel.find({ username: regex });
-  
+
   res.json(users);
 });
 
@@ -104,28 +105,90 @@ router.get("/logout", function (req, res, next) {
 });
 
 router.post("/update", upload.single("image"), async function (req, res) {
-  const user = await userModel.findOneAndUpdate({ username: req.session.passport.user },
+
+  cloudinary.config({
+    cloud_name: 'dbqla7rxg',
+    api_key: '315861966216558',
+    api_secret: '_ajdD-b4n_b57brooUP2jwWWe0Y'
+  });
+  try {
+    // Upload the file to Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: 'uploads', // Cloudinary folder where the file will be stored
+
+    });
+    const user = await userModel.findOneAndUpdate({ username: req.session.passport.user },
     { username: req.body.username, name: req.body.name, bio: req.body.bio }, { new: true });
 
   if (req.file) {
-    user.profileImage = req.file.filename;
+    user.profileImage = result.url;
   }
-// console.log(profileImage);
+  // console.log(profileImage);
   await user.save();
+
+    console.log(result);
+
+    //   res.send('File uploaded to Cloudinary successfully!');
+  } catch (error) {
+
+  }
+
+  
   res.redirect("/profile");
 
 });
 
-router.post('/upload', isLoggedIn, upload.single("image"), async function (req, res) {
-  const user = await userModel.findOne({ username: req.session.passport.user });
-  const post = await postModel.create({
-    picture: req.file.filename,
-    user: user._id,
-    caption: req.body.caption
+router.post('/upload', upload.single("image"), isLoggedIn, async function (req, res) {
+  cloudinary.config({
+    cloud_name: 'dbqla7rxg',
+    api_key: '315861966216558',
+    api_secret: '_ajdD-b4n_b57brooUP2jwWWe0Y'
   });
-  user.posts.push(post._id);
-  await user.save();
+  try {
+    // Upload the file to Cloudinary
+    const result = await cloudinary.uploader.upload(req.file.path, {
+      folder: 'uploads', // Cloudinary folder where the file will be stored
+
+    });
+    const user = await userModel.findOne({ username: req.session.passport.user });
+    const post = await postModel.create({
+      picture: result.url,
+      user: user._id,
+      caption: req.body.caption
+    });
+    user.posts.push(post._id);
+    await user.save();
+
+    console.log(result);
+
+    //   res.send('File uploaded to Cloudinary successfully!');
+  } catch (error) {
+
+  }
+
+
   res.redirect("/feed");
+
+});
+
+
+router.get('/cloudinary', async function (req, res) {
+
+  cloudinary.config({
+    cloud_name: 'dbqla7rxg',
+    api_key: '315861966216558',
+    api_secret: '_ajdD-b4n_b57brooUP2jwWWe0Y'
+  });
+
+  cloudinary.uploader.upload('image', function (error, result) {
+    if (error) {
+      console.error(error);
+    } else {
+      console.log(result);
+    }
+  });
+
+  res.send("done");
 
 });
 
