@@ -32,6 +32,11 @@ router.get('/profile', isLoggedIn, async function (req, res) {
   res.render('profile', { footer: true, user });
 });
 
+// router.get('/footer', isLoggedIn, async function (req, res) {
+//   const user = await userModel.findOne({ username: req.session.passport.user }).populate("posts");
+//   res.render('profile', { footer: true, user });
+// });
+
 router.get('/search', isLoggedIn, function (req, res) {
   res.render('search', { footer: true });
 });
@@ -100,7 +105,7 @@ router.post("/login", passport.authenticate("local", {
 router.get("/logout", function (req, res, next) {
   req.logout(function (err) {
     if (err) { return next(err); }
-    res.redirect('/');
+    res.redirect('/login');
   });
 });
 
