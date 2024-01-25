@@ -37,12 +37,15 @@ router.get('/profile', isLoggedIn, async function (req, res) {
 //   res.render('profile', { footer: true, user });
 // });
 
-router.get('/search', isLoggedIn, function (req, res) {
-  res.render('search', { footer: true });
+router.get('/search', isLoggedIn, async function (req, res) {
+  const user = await userModel.findOne({ username: req.session.passport.user })
+
+  res.render('search', { footer: true,user });
 });
 
-router.get('/upload', isLoggedIn, function (req, res) {
-  res.render('upload', { footer: true, });
+router.get('/upload', isLoggedIn, async function (req, res) {
+  const user = await userModel.findOne({ username: req.session.passport.user })
+  res.render('upload', { footer: true, user });
 });
 
 
@@ -128,9 +131,10 @@ router.post("/update", upload.single("image"), async function (req, res) {
     });const user = await userModel.findOneAndUpdate({ username: req.session.passport.user },
       { username: req.body.username, name: req.body.name, bio: req.body.bio }, { new: true });
   
-  
+
+ 
     user.profileImage = result.url;
-  
+
   await user.save();
   // console.log(profileImage);
   
