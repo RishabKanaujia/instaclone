@@ -73,6 +73,10 @@ router.get('/like/post/:id', isLoggedIn, async function (req, res) {
 
 router.get('/edit', isLoggedIn, async function (req, res) {
   const user = await userModel.findOne({ username: req.session.passport.user });
+  // const userUpdate = await userModel.findOneAndUpdate({ username: req.session.passport.user },
+  //   { username: req.body.username, name: req.body.name, bio: req.body.bio }, { new: true });
+  
+  //   await userUpdate.save();
   res.render('edit', { footer: true, user });
 });
 
@@ -122,23 +126,24 @@ router.post("/update", upload.single("image"), async function (req, res) {
       folder: 'uploads', // Cloudinary folder where the file will be stored
 
     });
-    const user = await userModel.findOneAndUpdate({ username: req.session.passport.user },
-    { username: req.body.username, name: req.body.name, bio: req.body.bio }, { new: true });
+    
 
   if (req.file) {
     user.profileImage = result.url;
   }
   // console.log(profileImage);
-  await user.save();
+  
 
-    console.log(result);
+    // console.log(result);
 
     //   res.send('File uploaded to Cloudinary successfully!');
   } catch (error) {
 
   }
+  const user = await userModel.findOneAndUpdate({ username: req.session.passport.user },
+    { username: req.body.username, name: req.body.name, bio: req.body.bio }, { new: true });
 
-  
+    await user.save();
   res.redirect("/profile");
 
 });
