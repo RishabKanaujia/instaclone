@@ -125,12 +125,13 @@ router.post("/update", upload.single("image"), async function (req, res) {
     const result = await cloudinary.uploader.upload(req.file.path, {
       folder: 'uploads', // Cloudinary folder where the file will be stored
 
-    });
-    
-
-  if (req.file) {
+    });const user = await userModel.findOneAndUpdate({ username: req.session.passport.user },
+      { username: req.body.username, name: req.body.name, bio: req.body.bio }, { new: true });
+  
+  
     user.profileImage = result.url;
-  }
+  
+  await user.save();
   // console.log(profileImage);
   
 
